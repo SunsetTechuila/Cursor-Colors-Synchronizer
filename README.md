@@ -17,6 +17,7 @@ A tiny PowerShell tool which will synchronize your cursor accent color and theme
 ## How to
 
 - ### Install
+Run PowerShell as Administrator, paste this command and press Enter
 ```powershell
 IWR -UseB 'https://raw.githubusercontent.com/SunsetTechuila/Cursor-Colors-Synchronizer/main/Install.ps1' | IEX
 ```
@@ -25,6 +26,7 @@ IWR -UseB 'https://raw.githubusercontent.com/SunsetTechuila/Cursor-Colors-Synchr
 Just read the installer prompts and choose what you want.
 
 - ### Uninstall
+Run PowerShell as Administrator, paste this command and press Enter
 ```powershell
 IWR -UseB 'https://raw.githubusercontent.com/SunsetTechuila/Cursor-Colors-Synchronizer/main/Uninstall.ps1' | IEX
 ```
