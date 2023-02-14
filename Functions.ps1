@@ -144,10 +144,10 @@ function Patch-Cursor {
     [CmdletBinding()]
     param (
     	[Parameter(Mandatory)]
-		[array]$Diff,
+    	[array]$Diff,
 	
     	[Parameter(Mandatory)]
-		[byte[]]$Cursor
+    	[byte[]]$Cursor
     )
     $color = Get-WindowsAccentColor
     $counter = 0

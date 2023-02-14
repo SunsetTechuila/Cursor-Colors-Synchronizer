@@ -8,7 +8,7 @@ Remove-Module -Name Functions -ErrorAction SilentlyContinue
 Clear-Variable -Name Localization, windowsTheme, cursorSize, useClassicWheel, useAlternatePrecision, originalCursorFolder, customCursorFolder, byteDiffFolder, useListener, input -ErrorAction SilentlyContinue
 Import-LocalizedData -BindingVariable Localization -BaseDirectory $PSScriptRoot\Localizations -FileName Strings
 Import-Module -Name $PSScriptRoot\Functions.ps1
-#endregion
+#endregion Preparation
 
 #region Dialogs
 do {
@@ -72,7 +72,7 @@ switch ($input) {
 	1 {$useListener = $true}
 	2 {$useListener = $false}
 }
-#endregion
+#endregion Dialogs
 
 
 #region Variables
@@ -80,7 +80,7 @@ $windowsTheme = Get-WindowsTheme
 $originalCursorFolder = "$PSScriptRoot\Resources\Original Cursors\$windowsTheme\$cursorSize"
 $byteDiffFolder       = "$PSScriptRoot\Resources\Byte Diff\$cursorSize"
 $customCursorFolder   = "$PSScriptRoot\Resources\Custom Cursor"
-#endregion
+#endregion Variables
 
 #region Cursor
 Copy-Item -Path $originalCursorFolder\default\* -Destination $customCursorFolder -Recurse -Force
@@ -101,13 +101,13 @@ if ($useAlternatePrecision) {
 }
 Install-CursorFromFolder -Path $customCursorFolder
 Apply-Changes
-#endregion
+#endregion Cursor
 
 #region Parameters
 Set-Content -Path $PSScriptRoot\Resources\Preferences -Value $cursorSize
 Add-Content -Path $PSScriptRoot\Resources\Preferences -Value $useClassicWheel
 Add-Content -Path $PSScriptRoot\Resources\Preferences -Value $useAlternatePrecision
-#endregion
+#endregion Parameters
 
 #region Listener
 if ($useListener) {
@@ -119,10 +119,10 @@ if ($useListener) {
 	$settings    = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -StartWhenAvailable -DontStopIfGoingOnBatteries -ExecutionTimeLimit '00:00:00'
 	Stop-ScheduledTask -TaskName $name -ErrorAction SilentlyContinue
 	Register-ScheduledTask -TaskName $name -Description $description -Action $action -Trigger $trigger -Settings $settings -RunLevel Highest -Force | Out-Null
-	Start-Sleep 1
+	Start-Sleep -Seconds 1
 	Start-ScheduledTask -TaskName $name
 }
-#endregion
+#endregion Listener
 
 #region Final Messages
 Clear-Host
@@ -133,4 +133,4 @@ Write-Host -Object $Localization.GitHubReminderMessage
 Write-Host
 Pause
 exit
-#endregion
+#endregion Final Messages

@@ -6,17 +6,17 @@ $ErrorActionPreference = 'Stop'
 Remove-Module -Name Functions -ErrorAction SilentlyContinue
 Clear-Variable -Name lastTheme, currentTheme, lastAccentColor, currentAccentColor, useClassicWheel, useAlternatePrecision, originalCursorFolder, customCursorFolder -ErrorAction SilentlyContinue
 Import-Module -Name $PSScriptRoot\Functions.ps1
-#endregion
+#endregion Preparation
 
 #region Variables
 $cursorSize            = Get-Content -Path $PSScriptRoot\Resources\Preferences -First 1
 $useClassicWheel       = Get-Content -Path $PSScriptRoot\Resources\Preferences -First 2 | Select-Object -Skip 1
 $useAlternatePrecision = [System.Convert]::ToBoolean( $(Get-Content -Path $PSScriptRoot\Resources\Preferences -Last 1) )
-$byteDiffFolder     = "$PSScriptRoot\Resources\Byte Diff\$cursorSize"
-$customCursorFolder = "$PSScriptRoot\Resources\Custom Cursor"
-$lastTheme       = Get-WindowsTheme
-$lastAccentColor = Get-WindowsAccentColor
-#endregion
+$byteDiffFolder        = "$PSScriptRoot\Resources\Byte Diff\$cursorSize"
+$customCursorFolder    = "$PSScriptRoot\Resources\Custom Cursor"
+$lastTheme             = Get-WindowsTheme
+$lastAccentColor       = Get-WindowsAccentColor
+#endregion Variables
 
 while (1) {
 	#region Theme
@@ -43,7 +43,7 @@ while (1) {
 		Apply-Changes
 		$lastTheme = $currentTheme
 	}
-	#endregion
+	#endregion Theme
 	
 	#region Accent Color
 	$currentAccentColor = Get-WindowsAccentColor
@@ -60,7 +60,7 @@ while (1) {
 		}
 		$lastAccentColor = $currentAccentColor
 	}
-	#endregion
+	#endregion Accent Color
 	
-	Start-Sleep 1
+	Start-Sleep -Seconds 1
 }
