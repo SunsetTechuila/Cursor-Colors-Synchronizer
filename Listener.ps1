@@ -11,7 +11,7 @@ Import-Module -Name $PSScriptRoot\Functions.ps1
 #region Variables
 $cursorSize            = Get-Content -Path $PSScriptRoot\Resources\Preferences -First 1
 $useClassicWheel       = Get-Content -Path $PSScriptRoot\Resources\Preferences -First 2 | Select-Object -Skip 1
-$useAlternatePrecision = Get-Content -Path $PSScriptRoot\Resources\Preferences -Last  1
+$useAlternatePrecision = [System.Convert]::ToBoolean( $(Get-Content -Path $PSScriptRoot\Resources\Preferences -Last 1) )
 $byteDiffFolder     = "$PSScriptRoot\Resources\Byte Diff\$cursorSize"
 $customCursorFolder = "$PSScriptRoot\Resources\Custom Cursor"
 $lastTheme       = Get-WindowsTheme
