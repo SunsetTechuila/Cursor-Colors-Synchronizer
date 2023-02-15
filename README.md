@@ -20,6 +20,7 @@ A tiny PowerShell tool which will synchronize your cursor accent color and theme
 - ### Install
 Run PowerShell as Administrator, paste this command and press Enter
 ```powershell
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 IWR -UseB 'https://raw.githubusercontent.com/SunsetTechuila/Cursor-Colors-Synchronizer/main/Install.ps1' | IEX
 ```
 
