@@ -34,6 +34,11 @@ Run PowerShell as Administrator, paste this command and press Enter
 IWR -UseB 'https://raw.githubusercontent.com/SunsetTechuila/Cursor-Colors-Synchronizer/main/Uninstall.ps1' | IEX
 ```
 
+## Requirements:
+- Windows 7 or higher
+- PowerShell 5.1 or higher
+- Last Windows updates installed
+
 ## Credits
 - [farag2](https://github.com/farag2) for a lot of help
 
