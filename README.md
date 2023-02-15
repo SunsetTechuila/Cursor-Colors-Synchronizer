@@ -30,6 +30,7 @@ Just read the installer prompts and choose what you want.
 - ### Uninstall
 Run PowerShell as Administrator, paste this command and press Enter
 ```powershell
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 IWR -UseB 'https://raw.githubusercontent.com/SunsetTechuila/Cursor-Colors-Synchronizer/main/Uninstall.ps1' | IEX
 ```
 
