@@ -8,6 +8,7 @@ A tiny PowerShell tool which will synchronize your cursor accent color and theme
 
 #### Best match with:
 - [Windows Auto Night Mode](https://github.com/AutoDarkMode/Windows-Auto-Night-Mode)
+- [Light Switch](https://github.com/joakimmag/Light-Switch)
 - Automatic accent color with:
   - [WinDynamicDesktop](https://github.com/t1m0thyj/WinDynamicDesktop)
   - [Bing Wallpaper](https://www.microsoft.com/en-us/bing/bing-wallpaper)
