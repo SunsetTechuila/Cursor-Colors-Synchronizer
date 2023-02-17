@@ -5,7 +5,7 @@
 $ErrorActionPreference = 'Stop'
 [Console]::Title = 'Cursor Colors Synchronizer'
 Remove-Module -Name Functions -ErrorAction SilentlyContinue
-Clear-Variable -Name Localization, windowsTheme, cursorSize, useClassicWheel, useAlternatePrecision, originalCursorFolder, customCursorFolder, byteDiffFolder, useListener, input -ErrorAction SilentlyContinue
+Clear-Variable -Name Localization, windowsTheme, cursorSize, useClassicWheel, useAlternatePrecision, originalCursorFolder, customCursorFolder, byteDiffFolder, useListener, choice -ErrorAction SilentlyContinue
 Import-LocalizedData -BindingVariable Localization -BaseDirectory $PSScriptRoot\Localizations -FileName Strings
 Import-Module -Name $PSScriptRoot\Functions.ps1
 #endregion Preparation
@@ -20,9 +20,9 @@ do {
 	Write-Host -Object ('2) ' + $Localization.Regular)
 	Write-Host -Object ('3) ' + $Localization.Big)
 	Write-Host
-	$input = Read-Host -Prompt $Localization.ChooseDialogPromt
-} until ( Validate-Input -Object $input -Values (1..3) )
-switch ($input) {
+	$choice = Read-Host -Prompt $Localization.ChooseDialogPromt
+} until ( Validate-choice -Object $choice -Values (1..3) )
+switch ($choice) {
 	1 {$cursorSize = 'small'}
 	2 {$cursorSize = 'regular'}
 	3 {$cursorSize = 'big'}
@@ -36,9 +36,9 @@ do {
 	Write-Host -Object ('1) ' + $Localization.No)
 	Write-Host -Object ('2) ' + $Localization.Yes)
 	Write-Host
-	$input = Read-Host -Prompt $Localization.ChooseDialogPromt
-} until ( Validate-Input -Object $input -Values (1..2) )
-switch ($input) {
+	$choice = Read-Host -Prompt $Localization.ChooseDialogPromt
+} until ( Validate-choice -Object $choice -Values (1..2) )
+switch ($choice) {
 	1 {$useClassicWheel = $false}
 	2 {$useClassicWheel = $true}
 }
@@ -51,9 +51,9 @@ do {
 	Write-Host -Object ('1) ' + $Localization.Yes)
 	Write-Host -Object ('2) ' + $Localization.No)
 	Write-Host
-	$input = Read-Host -Prompt $Localization.ChooseDialogPromt
-} until ( Validate-Input -Object $input -Values (1..2) )
-switch ($input) {
+	$choice = Read-Host -Prompt $Localization.ChooseDialogPromt
+} until ( Validate-choice -Object $choice -Values (1..2) )
+switch ($choice) {
 	1 {$useAlternatePrecision = $true}
 	2 {$useAlternatePrecision = $false}
 }
@@ -66,9 +66,9 @@ do {
 	Write-Host -Object ('1) ' + $Localization.Yes)
 	Write-Host -Object ('2) ' + $Localization.No)
 	Write-Host
-	$input = Read-Host -Prompt $Localization.ChooseDialogPromt
-} until ( Validate-Input -Object $input -Values (1..2) )
-switch ($input) {
+	$choice = Read-Host -Prompt $Localization.ChooseDialogPromt
+} until ( Validate-choice -Object $choice -Values (1..2) )
+switch ($choice) {
 	1 {$useListener = $true}
 	2 {$useListener = $false}
 }
