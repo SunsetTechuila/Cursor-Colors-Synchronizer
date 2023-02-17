@@ -5,7 +5,7 @@
 $ErrorActionPreference = 'Stop'
 [Console]::Title = 'Cursor Colors Synchronizer'
 Remove-Module -Name Functions -ErrorAction SilentlyContinue
-Clear-Variable -Name Localization, windowsTheme, cursorSize, useClassicWheel, useAlternatePrecision, originalCursorFolder, customCursorFolder, byteDiffFolder, useListener, input -ErrorAction SilentlyContinue
+Clear-Variable -Name Localization, windowsTheme, cursorSize, useClassicWheel, useAlternatePrecision, originalCursorFolder, customCursorFolder, byteDiffFolder, useListener, choice -ErrorAction SilentlyContinue
 Import-LocalizedData -BindingVariable Localization -BaseDirectory $PSScriptRoot\Localizations -FileName Strings
 Import-Module -Name $PSScriptRoot\Functions.ps1
 #endregion Preparation
