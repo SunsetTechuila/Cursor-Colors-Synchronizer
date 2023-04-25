@@ -40,8 +40,6 @@ IWR -UseB 'https://raw.githubusercontent.com/SunsetTechuila/Cursor-Colors-Synchr
 - Last Windows updates installed
 
 ## Credits
-- [farag2](https://github.com/farag2) for a lot of help
-
 - [Jepri Creations](https://jepricreations.com) for the cursors
 
 ## Legal
