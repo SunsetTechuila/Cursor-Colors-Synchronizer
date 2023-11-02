@@ -21,7 +21,7 @@ A PowerShell tool which will synchronize your cursor accent color and theme with
 
 - ### Install
 
-Run PowerShell as Administrator, paste this commands and press Enter
+Run PowerShell as Administrator, paste these commands and press Enter
 
 ```powershell
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -34,7 +34,7 @@ Just read the installer prompts and choose what you want.
 
 - ### Uninstall
 
-Run PowerShell as Administrator, paste this commands and press Enter
+Run PowerShell as Administrator, paste these commands and press Enter
 
 ```powershell
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -52,6 +52,6 @@ iwr 'https://raw.githubusercontent.com/SunsetTechuila/Cursor-Colors-Synchronizer
 
 ## Legal
 
-I don't have a licence or permission from author to use that pack in this way. You can buy it on [ko-fi](https://ko-fi.com/s/d9f85e6821) for personal use.
+I don't have a licence or permission from the author to use that pack in this way. You can buy it on [ko-fi](https://ko-fi.com/s/d9f85e6821) for personal use.
 
 You can use my code for any purposes.
