@@ -3,64 +3,93 @@
 
 #region Preparation
 $ErrorActionPreference = 'Stop'
-Remove-Module -Name Functions -ErrorAction SilentlyContinue
-Clear-Variable -Name lastTheme, currentTheme, lastAccentColor, currentAccentColor, useClassicWheel, useAlternatePrecision, originalCursorFolder, customCursorFolder -ErrorAction SilentlyContinue
-Import-Module -Name $PSScriptRoot\Functions.ps1
+Remove-Job -Name 'CursorThemeSync' -Force -ErrorAction 'SilentlyContinue'
+Remove-Job -Name 'CursorColorSync' -Force -ErrorAction 'SilentlyContinue'
 #endregion Preparation
 
 #region Variables
-$cursorSize            = Get-Content -Path $PSScriptRoot\Resources\Preferences -First 1
-$useClassicWheel       = Get-Content -Path $PSScriptRoot\Resources\Preferences -First 2 | Select-Object -Skip 1
-$useAlternatePrecision = Get-Content -Path $PSScriptRoot\Resources\Preferences -Last 1
-$byteDiffFolder        = "$PSScriptRoot\Resources\Byte Diff\$cursorSize"
-$customCursorFolder    = "$PSScriptRoot\Resources\Custom Cursor"
-$lastTheme             = Get-WindowsTheme
-$lastAccentColor       = Get-WindowsAccentColor
+$RootPath = $PSScriptRoot
+
+$prefsPath = "$RootPath\prefs"
+$resourcesFolderPath = "$RootPath\Resources"
+$cursorsFolderPath = "$resourcesFolderPath\Cursors"
+$editedCursorFolderPath = "$cursorsFolderPath\Edited"
+
+$cursorSize = Get-Content -Path $prefsPath -First 1
+$useAlternatePrecision = [System.Convert]::ToBoolean($(Get-Content -Path $prefsPath -Last 1))
+$diffFolderPath = "$resourcesFolderPath\Diffs\$cursorSize"
+
+$themeSubKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize'
+$accentColorSubKey = 'HKCU:\Software\Microsoft\Windows\DWM'
 #endregion Variables
 
-while (1) {
-	#region Theme
-	$currentTheme = Get-WindowsTheme
-	if ($lastTheme -ne $currentTheme) {
-		$originalCursorFolder = "$PSScriptRoot\Resources\Original Cursors\$currentTheme\$cursorSize"
-		Copy-Item -Path $originalCursorFolder\default\* -Destination $customCursorFolder -Recurse -Force
-		if ($useAlternatePrecision -eq $true) {
-			Copy-Item -Path $originalCursorFolder\alternatives\precision.cur -Destination $customCursorFolder -Force
-		}
-		if ($useClassicWheel -eq $false) {
-			if ( ($windowsTheme -eq 'light') -and ($cursorSize -eq 'big') ) {
-				Create-PatchedCursorFiles -CursorPath $customCursorFolder -DiffPath $byteDiffFolder -UseAlternateDiff $true
-			}
-			else {
-				Create-PatchedCursorFiles -CursorPath $customCursorFolder -DiffPath $byteDiffFolder
-			}
-		}
-		else {
-			Copy-Item -Path $originalCursorFolder\alternatives\busy.ani -Destination $customCursorFolder -Force
-			Copy-Item -Path $originalCursorFolder\alternatives\working.ani -Destination $customCursorFolder -Force
-		}
-		Install-CursorFromFolder -Path $customCursorFolder
-		Apply-Changes
-		$lastTheme = $currentTheme
+#region Theme
+$cursorThemeSyncScriptBlock = {
+	[CmdletBinding()]
+	param()
+	begin {
+		$ErrorActionPreference = 'Stop'
+		Import-Module -Name "$using:RootPath\Functions.psm1" -Force
 	}
-	#endregion Theme
-	
-	#region Accent Color
-	$currentAccentColor = Get-WindowsAccentColor
-	if ( ($lastAccentColor.R -ne $currentAccentColor.R) -or ($lastAccentColor.G -ne $currentAccentColor.G) -or ($lastAccentColor.B -ne $currentAccentColor.B) ) {
-		if ($useClassicWheel -eq $false) {
-			if ( ($windowsTheme -eq 'light') -and ($cursorSize -eq 'big') ) {
-				Create-PatchedCursorFiles -CursorPath $customCursorFolder -DiffPath $byteDiffFolder -UseAlternateDiff $true
+	process {
+		while (1) {
+			$lastTheme = Get-SystemTheme
+			Wait-RegistryKeyChange -Path $using:themeSubKey
+			$currentTheme = Get-SystemTheme
+
+			if ($lastTheme -ne $currentTheme) {
+				$originalCursorFolderPath = "$using:cursorsFolderPath\Original\$currentTheme\$using:cursorSize"
+
+				Copy-Item -Path "$originalCursorFolderPath\default\*" -Destination $using:editedCursorFolderPath -Recurse -Force
+				if ($using:useAlternatePrecision) {
+					Copy-Item -Path "$originalCursorFolderPath\alternatives\precision.cur" -Destination $using:editedCursorFolderPath -Force
+				}
+
+				if (($currentTheme -eq 'light') -and ($using:cursorSize -eq 'big')) {
+					Edit-Cursors -Path $using:editedCursorFolderPath -DiffFolderPath $using:diffFolderPath -UseAlternateDiff
+				}
+				else {
+					Edit-Cursors -Path $using:editedCursorFolderPath -DiffFolderPath $using:diffFolderPath
+				}
+
+				Install-Cursors -Path $using:editedCursorFolderPath
+				Update-Cursor
 			}
-			else {
-				Create-PatchedCursorFiles $customCursorFolder $byteDiffFolder
-			}
-			Install-CursorFromFolder -Path $customCursorFolder
-			Apply-Changes
 		}
-		$lastAccentColor = $currentAccentColor
 	}
-	#endregion Accent Color
-	
-	Start-Sleep -Seconds 1
 }
+Start-Job -ScriptBlock $cursorThemeSyncScriptBlock -Name 'CursorThemeSync' | Out-Null
+#endregion Theme
+
+#region Accent Color
+$cursorColorSyncScriptBlock = {
+	[CmdletBinding()]
+	param()
+	begin {
+		$ErrorActionPreference = 'Stop'
+		Import-Module -Name "$using:RootPath\Functions.psm1" -Force
+		$currentTheme = Get-SystemTheme
+	}
+	process {
+		while (1) {
+			$lastAccentColor = Get-AccentColor
+			Wait-RegistryKeyChange -Path $using:accentColorSubKey
+			Start-Sleep -Seconds 1
+			$currentAccentColor = Get-AccentColor
+			
+			if (($lastAccentColor | ConvertTo-Json) -ne ($currentAccentColor | ConvertTo-Json)) {
+				if (($currentTheme -eq 'light') -and ($using:cursorSize -eq 'big')) {
+					Edit-Cursors -Path $using:editedCursorFolderPath -DiffFolderPath $using:diffFolderPath -UseAlternateDiff
+				}
+				else {
+					Edit-Cursors -Path $using:editedCursorFolderPath -DiffFolderPath $using:diffFolderPath
+				}
+				
+				Install-Cursors -Path $using:editedCursorFolderPath
+				Update-Cursor
+			}
+		}
+	}
+}
+Start-Job -ScriptBlock $cursorColorSyncScriptBlock -Name 'CursorColorSync' | Out-Null
+#endregion Accent Color

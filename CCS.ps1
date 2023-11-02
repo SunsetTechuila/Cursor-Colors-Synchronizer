@@ -3,134 +3,130 @@
 
 #region Preparation
 $ErrorActionPreference = 'Stop'
-[Console]::Title = 'Cursor Colors Synchronizer'
-Remove-Module -Name Functions -ErrorAction SilentlyContinue
-Clear-Variable -Name Localization, windowsTheme, cursorSize, useClassicWheel, useAlternatePrecision, originalCursorFolder, customCursorFolder, byteDiffFolder, useListener, choice -ErrorAction SilentlyContinue
-Import-LocalizedData -BindingVariable Localization -BaseDirectory $PSScriptRoot\Localizations -FileName Strings
-Import-Module -Name $PSScriptRoot\Functions.ps1
+
+$previousWindowTitle = $Host.UI.RawUI.WindowTitle
+$Host.UI.RawUI.WindowTitle = 'Cursor Colors Synchronizer'
+
+$Parameters = @{
+	BindingVariable = 'Localization'
+	BaseDirectory   = "$PSScriptRoot\Localizations"
+	FileName        = 'Strings'
+}
+Import-LocalizedData @Parameters
+
+Import-Module -Name "$PSScriptRoot\Functions.psm1" -Force
 #endregion Preparation
 
 #region Dialogs
-do {
-	Clear-Host
-	Write-Host
-	Write-Host -Object $Localization.ChooseSizeDialogTitle
-	Write-Host
-	Write-Host -Object ('1) ' + $Localization.Small)
-	Write-Host -Object ('2) ' + $Localization.Regular)
-	Write-Host -Object ('3) ' + $Localization.Big)
-	Write-Host
-	$choice = Read-Host -Prompt $Localization.ChooseDialogPromt
-} until ( Validate-Input -Object $choice -Values (1..3) )
+Clear-Host
+
+$Host.UI.RawUI.Flushinputbuffer()
+$choice = $Host.UI.PromptForChoice(
+	'',
+	$Localization.ChooseDialogPromt,
+	(
+		"&1 $($Localization.Small)",
+		"&2 $($Localization.Regular)",
+		"&3 $($Localization.Big)"
+	),
+	0
+)
 switch ($choice) {
-	1 {$cursorSize = 'small'}
-	2 {$cursorSize = 'regular'}
-	3 {$cursorSize = 'big'}
+	0 { $cursorSize = 'small' }
+	1 { $cursorSize = 'regular' }
+	2 { $cursorSize = 'big' }
 }
 
-do {
-	Clear-Host
-	Write-Host
-	Write-Host -Object $Localization.ChooseWheelDialogTitle
-	Write-Host
-	Write-Host -Object ('1) ' + $Localization.No)
-	Write-Host -Object ('2) ' + $Localization.Yes)
-	Write-Host
-	$choice = Read-Host -Prompt $Localization.ChooseDialogPromt
-} until ( Validate-Input -Object $choice -Values (1..2) )
+
+$Host.UI.RawUI.Flushinputbuffer()
+$choice = $Host.UI.PromptForChoice(
+	'',
+	$Localization.ChoosePrecisionDialogTitle,
+	(
+		"&1 $($Localization.Yes)",
+		"&2 $($Localization.No)"
+	),
+	1
+)
 switch ($choice) {
-	1 {$useClassicWheel = $false}
-	2 {$useClassicWheel = $true}
+	0 { $useAlternatePrecision = $true }
+	1 { $useAlternatePrecision = $false }
 }
 
-do {
-	Clear-Host
-	Write-Host
-	Write-Host -Object $Localization.ChoosePrecisionDialogTitle
-	Write-Host
-	Write-Host -Object ('1) ' + $Localization.Yes)
-	Write-Host -Object ('2) ' + $Localization.No)
-	Write-Host
-	$choice = Read-Host -Prompt $Localization.ChooseDialogPromt
-} until ( Validate-Input -Object $choice -Values (1..2) )
+$Host.UI.RawUI.Flushinputbuffer()
+$choice = $Host.UI.PromptForChoice(
+	'',
+	$Localization.ListenerDialogTitle,
+	(
+		"&1 $($Localization.Yes)",
+		"&2 $($Localization.No)"
+	),
+	0
+)
 switch ($choice) {
-	1 {$useAlternatePrecision = $true}
-	2 {$useAlternatePrecision = $false}
-}
-
-do {
-	Clear-Host
-	Write-Host
-	Write-Host -Object $Localization.ListenerDialogTitle
-	Write-Host
-	Write-Host -Object ('1) ' + $Localization.Yes)
-	Write-Host -Object ('2) ' + $Localization.No)
-	Write-Host
-	$choice = Read-Host -Prompt $Localization.ChooseDialogPromt
-} until ( Validate-Input -Object $choice -Values (1..2) )
-switch ($choice) {
-	1 {$useListener = $true}
-	2 {$useListener = $false}
+	0 { $installListener = $true }
+	1 { $installListener = $false }
 }
 #endregion Dialogs
 
 
 #region Variables
-$windowsTheme = Get-WindowsTheme
-$originalCursorFolder = "$PSScriptRoot\Resources\Original Cursors\$windowsTheme\$cursorSize"
-$byteDiffFolder       = "$PSScriptRoot\Resources\Byte Diff\$cursorSize"
-$customCursorFolder   = "$PSScriptRoot\Resources\Custom Cursor"
+$systemTheme = Get-SystemTheme
+$prefsPath = "$PSScriptRoot\prefs"
+$resourcesFolderPath = "$PSScriptRoot\Resources"
+$diffFolder = "$resourcesFolderPath\Diffs\$cursorSize"
+$cursorsFolderPath = "$resourcesFolderPath\Cursors"
+$originalCursorFolderPath = "$cursorsFolderPath\Original\$systemTheme\$cursorSize"
+$editedCursorFolderPath = "$cursorsFolderPath\Edited"
 #endregion Variables
 
 #region Cursor
-Copy-Item -Path $originalCursorFolder\default\* -Destination $customCursorFolder -Recurse -Force
-if ($useClassicWheel -eq $false) {
-	if ( ($windowsTheme -eq 'light') -and ($cursorSize -eq 'big') ) {
-		Create-PatchedCursorFiles -CursorPath $originalCursorFolder\default -DiffPath $byteDiffFolder -UseAlternateDiff $true
-	}
-	else {
-		Create-PatchedCursorFiles -CursorPath $originalCursorFolder\default -DiffPath $byteDiffFolder
-	}
+Copy-Item -Path "$originalCursorFolderPath\default\*" -Destination $editedCursorFolderPath -Recurse -Force
+if (($systemTheme -eq 'light') -and ($cursorSize -eq 'big')) {
+	Edit-Cursors -Path $editedCursorFolderPath -DiffFolderPath $diffFolder -UseAlternateDiff
 }
 else {
-	Copy-Item -Path $originalCursorFolder\alternatives\busy.ani -Destination $customCursorFolder -Force
-	Copy-Item -Path $originalCursorFolder\alternatives\working.ani -Destination $customCursorFolder -Force
+	Edit-Cursors -Path $editedCursorFolderPath -DiffFolderPath $diffFolder
 }
+
 if ($useAlternatePrecision) {
-	Copy-Item -Path $originalCursorFolder\alternatives\precision.cur -Destination $customCursorFolder -Force
+	Copy-Item -Path "$originalCursorFolderPath\alternatives\precision.cur" -Destination $editedCursorFolderPath -Force
 }
-Install-CursorFromFolder -Path $customCursorFolder
-Apply-Changes
+Install-Cursors -Path $editedCursorFolderPath
+Update-Cursor
 #endregion Cursor
 
 #region Parameters
-Set-Content -Path $PSScriptRoot\Resources\Preferences -Value $cursorSize
-Add-Content -Path $PSScriptRoot\Resources\Preferences -Value $useClassicWheel
-Add-Content -Path $PSScriptRoot\Resources\Preferences -Value $useAlternatePrecision
+Set-Content -Path $prefsPath -Value $cursorSize
+Add-Content -Path $prefsPath -Value $useAlternatePrecision
 #endregion Parameters
 
 #region Listener
-if ($useListener) {
-	$name        = 'CCS Listener'
-	$action      = New-ScheduledTaskAction -Execute powershell.exe -Argument ("-ExecutionPolicy Bypass -WindowStyle Hidden -File $PSScriptRoot\Listener.ps1")
-	$user        = whoami
-	$trigger     = New-ScheduledTaskTrigger -AtLogOn -User $user
-	$description = $Localization.ListenerTaskDescription
-	$settings    = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -StartWhenAvailable -DontStopIfGoingOnBatteries -ExecutionTimeLimit '00:00:00'
-	Stop-ScheduledTask -TaskName $name -ErrorAction SilentlyContinue
-	Register-ScheduledTask -TaskName $name -Description $description -Action $action -Trigger $trigger -Settings $settings -RunLevel Highest -Force | Out-Null
+if ($installListener) {
+	$Parameters = @{
+		TaskName    = 'CCS Listener'
+		Description = $Localization.ListenerTaskDescription
+		Action      = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-ExecutionPolicy Bypass -NoExit -WindowStyle Hidden -File `"$PSScriptRoot\Listener.ps1`""
+		Trigger     = New-ScheduledTaskTrigger -AtLogOn -User (whoami)
+		Settings    = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -StartWhenAvailable -DontStopIfGoingOnBatteries -ExecutionTimeLimit '00:00:00'
+		RunLevel    = 'Highest'
+		Force       = $true
+	}
+	Stop-ScheduledTask -TaskName $Parameters.TaskName -ErrorAction 'SilentlyContinue'
+	Register-ScheduledTask @Parameters | Out-Null
 	Start-Sleep -Seconds 1
-	Start-ScheduledTask -TaskName $name
+	Start-ScheduledTask -TaskName $Parameters.TaskName
 }
 #endregion Listener
 
 #region Final Messages
-Clear-Host
 Write-Host
-Write-Host -Object $Localization.SuccessMessage -ForegroundColor Green
+Write-Host -Object $Localization.SuccessMessage -ForegroundColor 'Green'
 Write-Host
 Write-Host -Object $Localization.GitHubReminderMessage
 Write-Host
+Remove-Module -Name 'Functions'
+$Host.UI.RawUI.WindowTitle = $previousWindowTitle
 Pause
 exit
 #endregion Final Messages
