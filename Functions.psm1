@@ -181,71 +181,71 @@ function Install-Cursors {
 			$targetPath = $cursor.FullName
 			switch -Exact ($cursor.Name) {
 				'alternate.cur' {
-					Set-Cursor -Name 'UpArrow' -Path "$targetPath"
+					Set-Cursor -Name 'UpArrow' -Path $targetPath
 					break
 				}
 				'beam.cur' {
-					Set-Cursor -Name 'IBeam' -Path "$targetPath"
+					Set-Cursor -Name 'IBeam' -Path $targetPath
 					break
 				}
 				'busy.ani' {
-					Set-Cursor -Name 'Wait' -Path "$targetPath"
+					Set-Cursor -Name 'Wait' -Path $targetPath
 					break
 				}
 				'dgn1.cur' {
-					Set-Cursor -Name 'SizeNWSE' -Path "$targetPath"
+					Set-Cursor -Name 'SizeNWSE' -Path $targetPath
 					break
 				}
 				'dgn2.cur' { 
-					Set-Cursor -Name 'SizeNESW' -Path "$targetPath"
+					Set-Cursor -Name 'SizeNESW' -Path $targetPath
 					break
 				}
 				'handwriting.cur' {
-					Set-Cursor -Name 'NWPen' -Path "$targetPath"
+					Set-Cursor -Name 'NWPen' -Path $targetPath
 					break
 				}
 				'help.cur' {
-					Set-Cursor -Name 'Help' -Path "$targetPath"
+					Set-Cursor -Name 'Help' -Path $targetPath
 					break
 				}
 				'horz.cur' {
-					Set-Cursor -Name 'SizeWE' -Path "$targetPath"
+					Set-Cursor -Name 'SizeWE' -Path $targetPath
 					break
 				}
 				'link.cur' {
-					Set-Cursor -Name 'Hand' -Path "$targetPath"
+					Set-Cursor -Name 'Hand' -Path $targetPath
 					break
 				}
 				'move.cur' {
-					Set-Cursor -Name 'SizeAll' -Path "$targetPath"
+					Set-Cursor -Name 'SizeAll' -Path $targetPath
 					break
 				}
 				'person.cur' {
-					Set-Cursor -Name 'Person' -Path "$targetPath"
+					Set-Cursor -Name 'Person' -Path $targetPath
 					break
 				}
 				'pin.cur' {
-					Set-Cursor -Name 'Pin' -Path "$targetPath"
+					Set-Cursor -Name 'Pin' -Path $targetPath
 					break
 				}
 				'pointer.cur' {
-					Set-Cursor -Name 'Arrow' -Path "$targetPath"
+					Set-Cursor -Name 'Arrow' -Path $targetPath
 					break
 				}
 				'precision.cur' {
-					Set-Cursor -Name 'Crosshair' -Path "$targetPath"
+					Set-Cursor -Name 'Crosshair' -Path $targetPath
 					break
 				}
 				'unavailable.cur' {
-					Set-Cursor -Name 'No' -Path "$targetPath"
+					Set-Cursor -Name 'No' -Path $targetPath
 					break
 				}
 				'vert.cur' {
-					Set-Cursor -Name 'SizeNS' -Path "$targetPath"
+					Set-Cursor -Name 'SizeNS' -Path $targetPath
 					break
 				}
 				'working.ani' {
-					Set-Cursor -Name 'AppStarting' -Path "$targetPath"
+					Set-Cursor -Name 'AppStarting' -Path $targetPath
 				}
 			}
 		}
