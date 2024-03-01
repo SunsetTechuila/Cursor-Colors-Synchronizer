@@ -1,6 +1,5 @@
 #region Preparation
 $ErrorActionPreference = 'Stop'
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 $previousWindowTitle = $Host.UI.RawUI.WindowTitle
 $Host.UI.RawUI.WindowTitle = 'Cursor Colors Synchronizer Installer'

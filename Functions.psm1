@@ -3,32 +3,229 @@
 
 $ErrorActionPreference = 'Stop'
 
-# For dev usage
+#region Test
+function Test-File {
+	[CmdletBinding()]
+	[OutputType([bool])]
+	param (
+		[Parameter(Mandatory)]
+		[AllowNull()]
+		[AllowEmptyString()]
+		[string]$Path
+	)
+	process {
+		[bool](Test-Path -Path $Path -PathType 'Leaf' -ErrorAction 'SilentlyContinue')
+	}
+}
+
+function Test-Folder {
+	[CmdletBinding()]
+	[OutputType([bool])]
+	param (
+		[Parameter(Mandatory)]
+		[AllowNull()]
+		[AllowEmptyString()]
+		[string]$Path
+	)
+	process {
+		[bool](Test-Path -Path $Path -PathType 'Container' -ErrorAction 'SilentlyContinue')
+	}
+}
+#endregion Test
+
+#region Dev
 # Compare two cursors which differ only in colors using Unix cmp tool, save the output to a file, then use this function to get only the addresses of the differing bytes
 function Get-DiffAddresses {
 	[CmdletBinding()]
 	param (
 		[Parameter(Mandatory)]
-		[string]$Path,
+		[ValidateNotNullOrEmpty()]
+		[string]$Diff,
 
 		[Parameter(Mandatory)]
-		[string]$Destination
+		[ValidateNotNullOrEmpty()]
+		[string]$OutFile
 	)
 	begin {
 		$Parameters = @{
-			Path  = $Destination
-			Value = $null
+			Path  = $OutFile
 			Force = $true
 		}
-		Set-Content @Parameters
 	}
 	process {
-		Get-Content -Path $Path | ForEach-Object -Process {
-			Add-Content -Path $Destination -Value (($PSItem.Trim() -split ' ')[0] - 1)
+		$diffContent = Get-Content -Path $Diff
+
+		$Parameters.Value = foreach ($line in $diffContent) {
+			($line.Trim() -split ' ')[0] - 1
 		}
+		
+		Set-Content @Parameters
+	}
+}
+#endregion Dev
+
+#region Paths
+function Initialize-PathsProvider {
+	[CmdletBinding()]
+	[OutputType([PathsProvider])]
+	param(
+		[ValidateScript({ Test-Folder -Path $PSItem })]
+		[string]$Root = $PSScriptRoot
+	)
+	process {
+		[PathsProvider]::new($Root)
 	}
 }
 
+class PathsProvider {
+	static        [string] $Listener
+	static        [string] $Prefs
+	static Hidden [string] $RecourcesFolder
+	static        [string] $LocalizationsFolder
+	static Hidden [string] $CursorsFolder
+	static        [string] $EditedCursorsFolder
+	static Hidden [string] $OriginalCursorsRootFolder
+	static Hidden [string] $DiffsRootFolder
+
+	PathsProvider([string]$Root) {
+		if (-not (Test-Folder -Path $Root)) {
+			throw "Root folder doesn't exist: $Root"
+		}
+		
+		[PathsProvider]::Listener = "$Root\Listener.ps1"
+		[PathsProvider]::Prefs = "$Root\prefs.ini"
+		[PathsProvider]::RecourcesFolder = "$Root\Resources"
+		[PathsProvider]::LocalizationsFolder = "$([PathsProvider]::RecourcesFolder)\Localizations"
+		[PathsProvider]::CursorsFolder = "$([PathsProvider]::RecourcesFolder)\Cursors"
+		[PathsProvider]::EditedCursorsFolder = "$([PathsProvider]::CursorsFolder)\Edited"
+		[PathsProvider]::OriginalCursorsRootFolder = "$([PathsProvider]::CursorsFolder)\Original"
+		[PathsProvider]::DiffsRootFolder = "$([PathsProvider]::RecourcesFolder)\Diffs"
+	}
+
+	static [hashtable] GetDynamicPaths() {
+		$useTailVersion = [PrefsManager]::UseTailVersion
+		$cursorSize = [PrefsManager]::CursorSize
+		$systemTheme = Get-SystemTheme
+
+		return @{
+			OriginalCursorsFolder = if ($useTailVersion) {
+				"$([PathsProvider]::OriginalCursorsRootFolder)\$systemTheme\tail"
+			}
+			else {
+				"$([PathsProvider]::OriginalCursorsRootFolder)\$systemTheme\default\$cursorSize"
+			}
+
+			DiffsFolder           = if ($useTailVersion) {
+				"$([PathsProvider]::DiffsRootFolder)\tail"
+			}
+			else {
+				"$([PathsProvider]::DiffsRootFolder)\default\$cursorSize"
+			}
+		}
+	}
+}
+#endregion Paths
+
+# region Preferences
+function Initialize-PrefsManager {
+	[CmdletBinding()]
+	[OutputType([PrefsManager])]
+	param()
+	process {
+		[PrefsManager]::new()
+	}
+}
+
+class PrefsManager {
+	static [bool]   $UseTailVersion = $false
+	static [string] $CursorSize = 'small'
+	static [bool]   $UseAlternatePrecision = $false
+
+	static PrefsManager() {
+		$prefs = [PrefsManager]::Read()
+
+		foreach ($pref in $prefs.GetEnumerator()) {
+			$property = [PrefsManager].GetProperty($pref.Name)
+			if ($property) {
+				$property.SetValue([PrefsManager], $pref.Value)
+			}
+		}
+	}
+
+	Hidden static [hashtable] Read() {
+		$prefs = Get-Content -Path ([PathsProvider]::Prefs) -ErrorAction 'SilentlyContinue'
+		$formattedPrefs = @{}
+
+		foreach ($pref in $prefs) {
+			$key, $value = $pref.Trim() -split '='
+			if ($key -match '^use|is') {
+				$value = [System.Convert]::ToBoolean($value)
+			}
+			$formattedPrefs.Add($key, $value)
+		}
+
+		return $formattedPrefs
+	}
+
+	static [void] Save() {
+		$Parameters = @{
+			Path  = [PathsProvider]::Prefs
+			Value = $null
+			Force = $true
+		}
+
+		Set-Content @Parameters
+
+		$prefs = [PrefsManager].GetProperties()
+		foreach ($pref in $prefs) {
+			$Parameters.Value = "$($pref.Name)=$($pref.GetValue([PrefsManager]))"
+			Add-Content @Parameters
+		}
+	}
+}
+#endregion Preferences
+
+#region Console
+function Read-Choice {
+	[CmdletBinding()]
+	param (
+		[ValidateNotNullOrEmpty()]
+		[string]$Title = '',
+
+		[ValidateNotNullOrEmpty()]
+		[string]$Message = '',
+
+		[Parameter(Mandatory)]
+		[ValidateNotNullOrEmpty()]
+		[System.Collections.Specialized.OrderedDictionary]$Variants,
+
+		[ValidateNotNullOrEmpty()]
+		$Default = ([array]$Variants.Keys)[0]
+	)
+	begin {
+		$variantKeys = [array]$Variants.Keys
+		$variantValues = [array]$Variants.Values
+	}
+	process {
+		$formattedVariants = for ($i = 0; $i -lt $Variants.Count; $i++) {
+			"&$($i + 1) $($variantValues[$i])"
+		}
+
+		$Host.UI.RawUI.Flushinputbuffer()
+		$choice = $Host.UI.PromptForChoice(
+			$Title,
+			$Message,
+			$formattedVariants,
+			$variantKeys.IndexOf($Default)
+		)
+	}
+	end {
+		$variantKeys[$choice]
+	}
+}
+#endregion Console
+
+#region System
 function Get-SystemTheme {
 	[CmdletBinding()]
 	[OutputType([string])]
@@ -59,16 +256,13 @@ function Get-AccentColor {
 	}
 	process {
 		$accentColor = Get-ItemPropertyValue @Parameters
-		$accentColorInHex = '{0:X}' -f ($accentColor)
-		$b = $accentColorInHex.Substring(2, 2)
-		$g = $accentColorInHex.Substring(4, 2)
-		$r = $accentColorInHex.Substring(6, 2)
-		$b = [int]("0x$b")
-		$g = [int]("0x$g")
-		$r = [int]("0x$r")
+		$accentColorInHex = '{0:X}' -f $accentColor
+		$r = "0x$($accentColorInHex.Substring(6, 2))"
+		$g = "0x$($accentColorInHex.Substring(4, 2))"
+		$b = "0x$($accentColorInHex.Substring(2, 2))"
 	}
 	end {
-		@{
+		[ordered]@{
 			R = $r
 			G = $g
 			B = $b
@@ -76,74 +270,232 @@ function Get-AccentColor {
 	}
 }
 
-function New-EditedCursor {
+function Wait-ForRegistryKeyChange {
 	[CmdletBinding()]
 	param (
 		[Parameter(Mandatory)]
-		[array]$Diff,
-	
-		[Parameter(Mandatory)]
-		[byte[]]$Cursor
+		[ValidateScript({ Test-Folder -Path $PSItem })]
+		[string]$Path,
+
+		[ValidateSet('Name', 'Attributes', 'LastSet', 'Security', 'All')]
+		[string]$ChangeEvent = 'All'
 	)
 	begin {
-		$targetColor = Get-AccentColor
-		$targetColor.B = '0x{0:X}' -f $targetColor.B
-		$targetColor.G = '0x{0:X}' -f $targetColor.G
-		$targetColor.R = '0x{0:X}' -f $targetColor.R
-		$i = 0
+		$infinite = 0xFFFFFFF
+		$handle = [IntPtr]::Zero
+		$notifyChangeName = 0x00000001L
+		$notifyChangeAttributes = 0x00000002L
+		$notifyChangeLastSet = 0x00000004L
+		$notifyChangeSecurity = 0x00000008L
+
+		Add-Type -TypeDefinition @'
+			using System;
+			using System.Runtime.InteropServices;
+
+			public class Regmon {
+				[DllImport("advapi32.dll", CharSet = CharSet.Unicode)]
+				public static extern int RegOpenKeyExW(
+					int hKey,
+					string lpSubKey,
+					int ulOptions,
+					uint samDesired,
+					out IntPtr phkResult
+				);
+
+				[DllImport("advapi32.dll", CharSet = CharSet.Unicode)]
+				public static extern int RegNotifyChangeKeyValue(
+					IntPtr hKey,
+					bool bWatchSubtree,
+					int dwNotifyFilter,
+					IntPtr hEvent,
+					bool fAsynchronous
+				);
+
+				[DllImport("advapi32.dll", CharSet = CharSet.Unicode)]
+				public static extern int RegCloseKey(
+					IntPtr hKey
+				);
+		
+				[DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+				public static extern int CloseHandle(
+					IntPtr hKey
+				);
+		
+				[DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+				public static extern IntPtr CreateEventW(
+					int lpEventAttributes,
+					bool bManualReset,
+					bool bInitialState,
+					string lpName
+				);
+		
+				[DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+				public static extern int WaitForSingleObject(
+					IntPtr hHandle,
+					int dwMilliseconds
+				);
+			}
+'@
 	}
 	process {
-		foreach ($address in $Diff) {
+		switch -Regex ($Path) {
+			'^HKCR' {
+				$handle = 0x80000000
+				break
+			}
+			'^HKCU' {
+				$handle = 0x80000001
+				break
+			}
+			'^HKLM' {
+				$handle = 0x80000002
+				break
+			}
+			'^HKU' {
+				$handle = 0x80000003
+				break
+			}
+			Default {
+				throw 'Unsuported hive!'
+			}
+		}
+
+		switch -Exact ($ChangeEvent) {
+			'Name' {
+				$notifyChange = $notifyChangeName
+				break 
+			}
+			'Attributes' {
+				$notifyChange = $notifyChangeAttributes
+				break 
+			}
+			'LastSet' { 
+				$notifyChange = $notifyChangeLastSet 
+				break 
+			}
+			'Security' { 
+				$notifyChange = $notifyChangeSecurity 
+				break 
+			}
+			'All' { 
+				$notifyChange = $notifyChangeName -bor $notifyChangeAttributes -bor $notifyChangeLastSet -bor $notifyChangeSecurity
+				break 
+			}
+			Default {
+				throw 'Unsuported change event!'
+			}
+		}
+
+		$regEvent = [Regmon]::CreateEventW($null, $true, $false, $null)
+		[Regmon]::RegOpenKeyExW($handle, ($Path -replace '^.*:\\'), 0, 0x0010, [ref]$handle) | Out-Null
+		[Regmon]::RegNotifyChangeKeyValue($handle, $false, $notifyChange, $regEvent, $true) | Out-Null
+		[Regmon]::WaitForSingleObject($regEvent, $infinite) | Out-Null
+		[Regmon]::CloseHandle($regEvent) | Out-Null
+		[Regmon]::RegCloseKey($handle) | Out-Null
+	}
+}
+#endregion System
+
+#region Cursors
+function Copy-Cursors {
+	[CmdletBinding()]
+	param ()
+	begin {
+		$editedCursorsFolder = [PathsProvider]::EditedCursorsFolder
+		$alternatePrecision = "$editedCursorsFolder\precision_alt.cur"
+		$originalCursorsFolder = [PathsProvider]::GetDynamicPaths().OriginalCursorsFolder
+	}
+	process {
+		$Parameters = @{
+			Path        = "$originalCursorsFolder\*"
+			Destination = $editedCursorsFolder
+			Force       = $true
+		}
+		Copy-Item @Parameters
+
+		if ([PrefsManager]::UseTailVersion) { return }
+
+		if ([PrefsManager]::UseAlternatePrecision) {
+			$Parameters = @{
+				Path    = $alternatePrecision
+				NewName = 'precision.cur'
+				Force   = $true
+			}
+			Rename-Item @Parameters
+		}
+		else {
+			$Parameters = @{
+				Path  = $alternatePrecision
+				Force = $true
+			}
+			Remove-Item @Parameters
+		}
+	}
+}
+
+function Edit-Cursor {
+	[CmdletBinding()]
+	param (
+		[Parameter(Mandatory)]
+		[ValidateScript({ Test-File -Path $PSItem })]
+		[Alias('Cursor')]
+		[string]$CursorPath,
+
+		[Parameter(Mandatory)]
+		[ValidateScript({ Test-File -Path $PSItem })]
+		[string]$Diff
+	)
+	begin {
+		$addresses = [System.IO.File]::ReadAllLines($Diff)
+		$cursor = [System.IO.File]::ReadAllBytes($CursorPath)
+		$targetColor = Get-AccentColor
+	}
+	process {
+		$i = 0
+		foreach ($address in $addresses) {
 			$i++
 			switch ($i) {
 				1 {
-					$Cursor[$address] = $targetColor.B
+					$cursor[$address] = $targetColor.B
 					break
 				}
 				2 {
-					$Cursor[$address] = $targetColor.G
+					$cursor[$address] = $targetColor.G
 					break
 				}
 				3 {
-					$Cursor[$address] = $targetColor.R
+					$cursor[$address] = $targetColor.R
 					$i = 0
 				}
 			}
 		}
 	}
 	end {
-		$Cursor
+		[System.IO.File]::WriteAllBytes($CursorPath, $cursor)
 	}
 }
 
 function Edit-Cursors {
 	[CmdletBinding()]
-	param (
-		[Parameter(Mandatory)]
-		[string]$Path,
-
-		[Parameter(Mandatory)]
-		[string]$DiffFolderPath,
-	
-		[switch]$UseAlternateDiff
-	)
+	param ()
 	begin {
-		$busyCursorFolderPath = "$Path\busy.ani"
-		$workingCursorFolderPath = "$Path\working.ani"
+		$diffsFolder = [PathsProvider]::GetDynamicPaths().DiffsFolder
+		$cursorsFolder = [PathsProvider]::EditedCursorsFolder
+
+		$systemTheme = Get-SystemTheme
+		$cursorSize = [PrefsManager]::CursorSize
+		$useTailVersion = [PrefsManager]::UseTailVersion
 	}
 	process {
-		$cursor = [System.IO.File]::ReadAllBytes($busyCursorFolderPath)
-		if ($useAlternateDiff) {
-			$cursor = New-EditedCursor -Diff (Get-Content -Path "$DiffFolderPath\busy_light") -Cursor $cursor
-		}
-		else {
-			$cursor = New-EditedCursor -Diff (Get-Content -Path "$DiffFolderPath\busy") -Cursor $cursor
-		}
-		[System.IO.File]::WriteAllBytes($busyCursorFolderPath, $cursor)
+		$busyCursor = "$cursorsFolder\busy.ani"
+		$shouldUseAlternateBusyDiff = (-not($useTailVersion) -and $cursorSize -eq 'big') -and ($systemTheme -eq 'light')
+		$busyCursorDiff = if ($shouldUseAlternateBusyDiff) { "$diffsFolder\busy_alt" } else { "$diffsFolder\busy" }
 
-		$cursor = [System.IO.File]::ReadAllBytes($workingCursorFolderPath)
-		$cursor = New-EditedCursor -Diff (Get-Content -Path "$DiffFolderPath\working") -Cursor $cursor
-		[System.IO.File]::WriteAllBytes($workingCursorFolderPath, $cursor)
+		$workingCursor = "$cursorsFolder\working.ani"
+		$workingCursorDiff = "$diffsFolder\working"
+
+		Edit-Cursor -Cursor $busyCursor -Diff $busyCursorDiff
+		Edit-Cursor -Cursor $workingCursor -Diff $workingCursorDiff
 	}
 }
 
@@ -151,9 +503,11 @@ function Set-Cursor {
 	[CmdletBinding()]
 	param (
 		[Parameter(Mandatory)]
+		[ValidateNotNullOrEmpty()]
 		[string]$Name,
 	
 		[Parameter(Mandatory)]
+		[ValidateScript({ Test-File -Path $PSItem })]
 		[string]$Path
 	)
 	begin {
@@ -172,83 +526,44 @@ function Set-Cursor {
 
 function Install-Cursors {
 	[CmdletBinding()]
-	param (
-		[Parameter(Mandatory)]
-		[string]$Path
-	)
-	process {
-		foreach ($cursor in (Get-ChildItem -Path $Path)) {
-			$targetPath = $cursor.FullName
-			switch -Exact ($cursor.Name) {
-				'alternate.cur' {
-					Set-Cursor -Name 'UpArrow' -Path $targetPath
-					break
-				}
-				'beam.cur' {
-					Set-Cursor -Name 'IBeam' -Path $targetPath
-					break
-				}
-				'busy.ani' {
-					Set-Cursor -Name 'Wait' -Path $targetPath
-					break
-				}
-				'dgn1.cur' {
-					Set-Cursor -Name 'SizeNWSE' -Path $targetPath
-					break
-				}
-				'dgn2.cur' { 
-					Set-Cursor -Name 'SizeNESW' -Path $targetPath
-					break
-				}
-				'handwriting.cur' {
-					Set-Cursor -Name 'NWPen' -Path $targetPath
-					break
-				}
-				'help.cur' {
-					Set-Cursor -Name 'Help' -Path $targetPath
-					break
-				}
-				'horz.cur' {
-					Set-Cursor -Name 'SizeWE' -Path $targetPath
-					break
-				}
-				'link.cur' {
-					Set-Cursor -Name 'Hand' -Path $targetPath
-					break
-				}
-				'move.cur' {
-					Set-Cursor -Name 'SizeAll' -Path $targetPath
-					break
-				}
-				'person.cur' {
-					Set-Cursor -Name 'Person' -Path $targetPath
-					break
-				}
-				'pin.cur' {
-					Set-Cursor -Name 'Pin' -Path $targetPath
-					break
-				}
-				'pointer.cur' {
-					Set-Cursor -Name 'Arrow' -Path $targetPath
-					break
-				}
-				'precision.cur' {
-					Set-Cursor -Name 'Crosshair' -Path $targetPath
-					break
-				}
-				'unavailable.cur' {
-					Set-Cursor -Name 'No' -Path $targetPath
-					break
-				}
-				'vert.cur' {
-					Set-Cursor -Name 'SizeNS' -Path $targetPath
-					break
-				}
-				'working.ani' {
-					Set-Cursor -Name 'AppStarting' -Path $targetPath
-				}
-			}
+	param ()
+	begin {
+		$knownCursors = @{
+			'alternate.cur'   = 'UpArrow'
+			'beam.cur'        = 'IBeam'
+			'busy.ani'        = 'Wait'
+			'dgn1.cur'        = 'SizeNWSE'
+			'dgn2.cur'        = 'SizeNESW'
+			'handwriting.cur' = 'NWPen'
+			'help.cur'        = 'Help'
+			'horz.cur'        = 'SizeWE'
+			'link.cur'        = 'Hand'
+			'move.cur'        = 'SizeAll'
+			'person.cur'      = 'Person'
+			'pin.cur'         = 'Pin'
+			'pointer.cur'     = 'Arrow'
+			'precision.cur'   = 'Crosshair'
+			'unavailable.cur' = 'No'
+			'vert.cur'        = 'SizeNS'
+			'working.ani'     = 'AppStarting'
 		}
+	}
+	process {
+		$cursors = Get-ChildItem -Path ([PathsProvider]::EditedCursorsFolder)
+
+		foreach ($cursor in $cursors) {
+			$Parameters = @{
+				Name = $knownCursors[$cursor.Name]
+				Path = $cursor.FullName
+			}
+			if (!$Parameters.Name) {
+				Write-Warning "Unsuported cursor name: $($cursor.Name)! Skipping..."
+				continue
+			}
+			Set-Cursor @Parameters
+		}
+
+		Update-Cursor
 	}
 }
 
@@ -324,9 +639,10 @@ function Reset-Cursor {
 		)
 	}
 	process {
-		$defaultCursors | ForEach-Object -Process {
-			Set-Cursor -Name $PSItem.Name -Path $PSItem.Path
+		foreach ($cursor in $defaultCursors) {
+			Set-Cursor -Name $cursor.Name -Path $cursor.Path
 		}
+
 		$Parameters = @{
 			Path         = 'HKCU:\Control Panel\Cursors'
 			Name         = 'IBeam'
@@ -335,6 +651,8 @@ function Reset-Cursor {
 			Force        = $true
 		}
 		New-ItemProperty @Parameters | Out-Null
+
+		Update-Cursor
 	}
 }
 
@@ -365,97 +683,4 @@ function Update-Cursor {
 		[Cursor]::Update()
 	}
 }
-
-function Wait-RegistryKeyChange {
-	[CmdletBinding()]
-	param (
-		[Parameter(Mandatory)]
-		[string]$Path,
-
-		[ValidateSet('Name', 'Attributes', 'LastSet', 'Security', 'All')]
-		[string]$ChangeEvent = 'All'
-	)
-	begin {
-		$infinite = 0xFFFFFFF
-		$handle = [IntPtr]::Zero
-		$notifyChangeName = 0x00000001L
-		$notifyChangeAttributes = 0x00000002L
-		$notifyChangeLastSet = 0x00000004L
-		$notifyChangeSecurity = 0x00000008L
-
-		Add-Type -TypeDefinition @'
-			using System;
-			using System.Runtime.InteropServices;
-
-			public class Regmon {
-				[DllImport("advapi32.dll", CharSet = CharSet.Unicode)]
-				public static extern int RegOpenKeyExW(
-					int hKey,
-					string lpSubKey,
-					int ulOptions,
-					uint samDesired,
-					out IntPtr phkResult
-				);
-
-				[DllImport("advapi32.dll", CharSet = CharSet.Unicode)]
-				public static extern int RegNotifyChangeKeyValue(
-					IntPtr hKey,
-					bool bWatchSubtree,
-					int dwNotifyFilter,
-					IntPtr hEvent,
-					bool fAsynchronous
-				);
-
-				[DllImport("advapi32.dll", CharSet = CharSet.Unicode)]
-				public static extern int RegCloseKey(
-					IntPtr hKey
-				);
-		
-				[DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
-				public static extern int CloseHandle(
-					IntPtr hKey
-				);
-		
-				[DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
-				public static extern IntPtr CreateEventW(
-					int lpEventAttributes,
-					bool bManualReset,
-					bool bInitialState,
-					string lpName
-				);
-		
-				[DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
-				public static extern int WaitForSingleObject(
-					IntPtr hHandle,
-					int dwMilliseconds
-				);
-			}
-'@
-	}
-	process {
-		if (!(Test-Path -Path $Path)) { throw 'Registry key not found!' }
-
-		switch -Wildcard ($Path) {
-			'HKCR*' { $handle = 0x80000000 }
-			'HKCU*' { $handle = 0x80000001 }
-			'HKLM*' { $handle = 0x80000002 }
-			'HKU*' { $handle = 0x80000003 }
-			Default { throw 'Unsuported hive!' }
-		}
-
-		switch -Exact ($ChangeEvent) {
-			'Name' { $notifyChange = $notifyChangeName }
-			'Attributes' { $notifyChange = $notifyChangeAttributes }
-			'LastSet' { $notifyChange = $notifyChangeLastSet }
-			'Security' { $notifyChange = $notifyChangeSecurity }
-			'All' { $notifyChange = $notifyChangeName -bor $notifyChangeAttributes -bor $notifyChangeLastSet -bor $notifyChangeSecurity }
-		}
-
-		$regEvent = [Regmon]::CreateEventW($null, $true, $false, $null)
-		[Regmon]::RegOpenKeyExW($handle, ($Path -replace '^.*:\\'), 0, 0x0010, [ref]$handle) | Out-Null
-		[Regmon]::RegNotifyChangeKeyValue($handle, $false, $notifyChange, $regEvent, $true) | Out-Null
-		[Regmon]::WaitForSingleObject($regEvent, $infinite) | Out-Null
-		[Regmon]::CloseHandle($regEvent) | Out-Null
-		[Regmon]::RegCloseKey($handle) | Out-Null
-	}
-}
+#endregion Cursors

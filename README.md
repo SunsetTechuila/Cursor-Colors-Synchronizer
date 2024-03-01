@@ -4,8 +4,10 @@
 
 ## Description
 
-A PowerShell tool which will synchronize your cursor accent color and theme with Windows. Uses paid version of
-[Windows 11 Cursors Concept v2 pack](https://www.deviantart.com/jepricreations/art/Windows-11-Cursors-Concept-v2-886489356).
+A PowerShell tool which will synchronize your cursor accent color and theme with Windows. Uses paid versions of packs:
+
+- [Windows 11 Cursors Concept v2](https://www.deviantart.com/jepricreations/art/Windows-11-Cursors-Concept-v2-886489356)
+- [Windows 11 Tail Cursor Concept](https://www.deviantart.com/jepricreations/art/W11-Free-Tail-Cursor-Concept-by-Jepri-Creations-962242647)
 
 #### Best match with
 
@@ -49,6 +51,6 @@ iwr 'https://raw.githubusercontent.com/SunsetTechuila/Cursor-Colors-Synchronizer
 
 ## Legal
 
-I don't have a licence or permission from the author to use that pack in this way. You can buy it on [ko-fi](https://ko-fi.com/s/d9f85e6821) for your personal use.
+I don't have a licence or permission from the author to use these packs in this way. You can buy them on ko-fi ([Non-Tail](https://ko-fi.com/s/d9f85e6821), [Tail](https://ko-fi.com/s/d07dcb11da)) for your personal use.
 
 You can use my code for any purposes.

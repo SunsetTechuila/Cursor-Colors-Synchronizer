@@ -7,106 +7,77 @@ $ErrorActionPreference = 'Stop'
 $previousWindowTitle = $Host.UI.RawUI.WindowTitle
 $Host.UI.RawUI.WindowTitle = 'Cursor Colors Synchronizer'
 
+Import-Module -Name "$PSScriptRoot\Functions.psm1" -Force
+$PathsProvider = Initialize-PathsProvider
+$PrefsManager = Initialize-PrefsManager
+
 $Parameters = @{
 	BindingVariable = 'Localization'
-	BaseDirectory   = "$PSScriptRoot\Localizations"
+	BaseDirectory   = $PathsProvider::LocalizationsFolder
 	FileName        = 'Strings'
 }
 Import-LocalizedData @Parameters
-
-Import-Module -Name "$PSScriptRoot\Functions.psm1" -Force
 #endregion Preparation
 
-#region Dialogs
+#region Preferences
 Clear-Host
 
-$Host.UI.RawUI.Flushinputbuffer()
-$choice = $Host.UI.PromptForChoice(
-	'',
-	$Localization.ChooseDialogPromt,
-	(
-		"&1 $($Localization.Small)",
-		"&2 $($Localization.Regular)",
-		"&3 $($Localization.Big)"
-	),
-	0
-)
-switch ($choice) {
-	0 { $cursorSize = 'small' }
-	1 { $cursorSize = 'regular' }
-	2 { $cursorSize = 'big' }
+$Parameters = @{
+	Message  = $Localization.TailVersionDialogTitle
+	Variants = [ordered]@{
+		$true  = $Localization.Yes
+		$false = $Localization.No
+	}
+	Default  = $false
+}
+$PrefsManager::UseTailVersion = Read-Choice @Parameters
+
+if (-not ($PrefsManager::UseTailVersion)) {
+	$Parameters = @{
+		Message  = $Localization.ChooseSizeDialogTitle
+		Variants = [ordered]@{
+			small   = $Localization.Small
+			regular = $Localization.Regular
+			big     = $Localization.Big
+		}
+	}
+	$PrefsManager::CursorSize = Read-Choice @Parameters
+
+	$Parameters = @{
+		Message  = $Localization.ChoosePrecisionDialogTitle
+		Variants = [ordered]@{
+			$true  = $Localization.Yes
+			$false = $Localization.No
+		}
+		Default  = $false
+	}
+	$PrefsManager::UseAlternatePrecision = Read-Choice @Parameters
 }
 
-
-$Host.UI.RawUI.Flushinputbuffer()
-$choice = $Host.UI.PromptForChoice(
-	'',
-	$Localization.ChoosePrecisionDialogTitle,
-	(
-		"&1 $($Localization.Yes)",
-		"&2 $($Localization.No)"
-	),
-	1
-)
-switch ($choice) {
-	0 { $useAlternatePrecision = $true }
-	1 { $useAlternatePrecision = $false }
+$Parameters = @{
+	Message  = $Localization.ListenerDialogTitle
+	Variants = [ordered]@{
+		$true  = $Localization.Yes
+		$false = $Localization.No
+	}
 }
+$installListener = Read-Choice @Parameters
 
-$Host.UI.RawUI.Flushinputbuffer()
-$choice = $Host.UI.PromptForChoice(
-	'',
-	$Localization.ListenerDialogTitle,
-	(
-		"&1 $($Localization.Yes)",
-		"&2 $($Localization.No)"
-	),
-	0
-)
-switch ($choice) {
-	0 { $installListener = $true }
-	1 { $installListener = $false }
-}
-#endregion Dialogs
-
-
-#region Variables
-$systemTheme = Get-SystemTheme
-$prefsPath = "$PSScriptRoot\prefs"
-$resourcesFolderPath = "$PSScriptRoot\Resources"
-$diffFolder = "$resourcesFolderPath\Diffs\$cursorSize"
-$cursorsFolderPath = "$resourcesFolderPath\Cursors"
-$originalCursorFolderPath = "$cursorsFolderPath\Original\$systemTheme\$cursorSize"
-$editedCursorFolderPath = "$cursorsFolderPath\Edited"
-#endregion Variables
+$PrefsManager::Save()
+#endregion Preferences
 
 #region Cursor
-Copy-Item -Path "$originalCursorFolderPath\default\*" -Destination $editedCursorFolderPath -Recurse -Force
-if (($systemTheme -eq 'light') -and ($cursorSize -eq 'big')) {
-	Edit-Cursors -Path $editedCursorFolderPath -DiffFolderPath $diffFolder -UseAlternateDiff
-}
-else {
-	Edit-Cursors -Path $editedCursorFolderPath -DiffFolderPath $diffFolder
-}
-
-if ($useAlternatePrecision) {
-	Copy-Item -Path "$originalCursorFolderPath\alternatives\precision.cur" -Destination $editedCursorFolderPath -Force
-}
-Install-Cursors -Path $editedCursorFolderPath
-Update-Cursor
+Copy-Cursors
+Edit-Cursors
+Install-Cursors
 #endregion Cursor
-
-#region Parameters
-Set-Content -Path $prefsPath -Value $cursorSize
-Add-Content -Path $prefsPath -Value $useAlternatePrecision
-#endregion Parameters
 
 #region Listener
 if ($installListener) {
 	$Parameters = @{
 		TaskName    = 'CCS Listener'
 		Description = $Localization.ListenerTaskDescription
-		Action      = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-ExecutionPolicy Bypass -NoExit -WindowStyle Hidden -File `"$PSScriptRoot\Listener.ps1`""
+		Action      = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-ExecutionPolicy Bypass -NoExit -WindowStyle Hidden -File `"$($PathsProvider::Listener)`""
 		Trigger     = New-ScheduledTaskTrigger -AtLogOn -User (whoami)
 		Settings    = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -StartWhenAvailable -DontStopIfGoingOnBatteries -ExecutionTimeLimit '00:00:00'
 		RunLevel    = 'Highest'

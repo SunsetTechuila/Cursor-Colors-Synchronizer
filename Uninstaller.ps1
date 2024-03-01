@@ -1,12 +1,14 @@
 #region Preparation
 $ErrorActionPreference = 'Stop'
 $ccsFolder = "$env:LOCALAPPDATA\CCS"
+$functionsModule = "$ccsFolder\Functions.psm1"
+$listenerTask = 'CCS Listener'
 #endregion Preparation
 
-#region Stop Scheduled Task
-Stop-ScheduledTask -TaskName 'CCS Listener' -ErrorAction 'SilentlyContinue'
-Unregister-ScheduledTask -TaskName 'CCS Listener' -Confirm $false -ErrorAction 'SilentlyContinue'
-#endregion Stop Scheduled Task
+#region Scheduled Task
+Stop-ScheduledTask -TaskName $listenerTask -ErrorAction 'SilentlyContinue'
+Unregister-ScheduledTask -TaskName $listenerTask -Confirm $false -ErrorAction 'SilentlyContinue'
+#endregion Scheduled Task
 
 #region Check Installation
 if (-not (Test-Path -Path $ccsFolder -PathType 'Container')) {
@@ -18,10 +20,8 @@ if (-not (Test-Path -Path $ccsFolder -PathType 'Container')) {
 #endregion Check Installation
 
 #region Restore Cursor
-Import-Module -Name "$ccsFolder\Functions.psm1" -Force
-
+Import-Module -Name $functionsModule -Force
 Reset-Cursor
-Update-Cursor
 #endregion Restore Cursor
 
 #region Cleanup
