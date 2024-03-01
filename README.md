@@ -4,7 +4,7 @@
 
 ## Description
 
-A PowerShell tool which will synchronize your cursor accent color and theme with Windows. Uses paid versions of packs:
+A PowerShell tool that synchronizes your cursor accent color and theme with Windows. Uses paid versions of packs:
 
 - [Windows 11 Cursors Concept v2](https://www.deviantart.com/jepricreations/art/Windows-11-Cursors-Concept-v2-886489356)
 - [Windows 11 Tail Cursor Concept](https://www.deviantart.com/jepricreations/art/W11-Free-Tail-Cursor-Concept-by-Jepri-Creations-962242647)
@@ -23,7 +23,7 @@ A PowerShell tool which will synchronize your cursor accent color and theme with
 
 - ### Install
 
-Run PowerShell as Administrator, paste these commands and press Enter
+Run PowerShell as Administrator, paste this command and press Enter
 
 ```powershell
 iwr 'https://raw.githubusercontent.com/SunsetTechuila/Cursor-Colors-Synchronizer/master/Installer.ps1' -useb | iex
@@ -35,7 +35,7 @@ Just read the installer prompts and choose what you want.
 
 - ### Uninstall
 
-Run PowerShell as Administrator, paste these commands and press Enter
+Run PowerShell as Administrator, paste this command and press Enter
 
 ```powershell
 iwr 'https://raw.githubusercontent.com/SunsetTechuila/Cursor-Colors-Synchronizer/master/Uninstaller.ps1' -useb | iex
@@ -51,6 +51,6 @@ iwr 'https://raw.githubusercontent.com/SunsetTechuila/Cursor-Colors-Synchronizer
 
 ## Legal
 
-I don't have a licence or permission from the author to use these packs in this way. You can buy them on ko-fi ([Non-Tail](https://ko-fi.com/s/d9f85e6821), [Tail](https://ko-fi.com/s/d07dcb11da)) for your personal use.
+I don't have a license or permission from the author to use these packs in this way. You can buy them on ko-fi ([Non-Tail](https://ko-fi.com/s/d9f85e6821), [Tail](https://ko-fi.com/s/d07dcb11da)) for your personal use.
 
 You can use my code for any purposes.
