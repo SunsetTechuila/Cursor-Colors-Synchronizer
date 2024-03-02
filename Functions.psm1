@@ -403,6 +403,7 @@ function Copy-Cursors {
 	begin {
 		$editedCursorsFolder = [PathsProvider]::EditedCursorsFolder
 		$alternatePrecision = "$editedCursorsFolder\precision_alt.cur"
+		$defaultPrecision = "$editedCursorsFolder\precision.cur"
 		$originalCursorsFolder = [PathsProvider]::GetDynamicPaths().OriginalCursorsFolder
 	}
 	process {
@@ -417,8 +418,14 @@ function Copy-Cursors {
 
 		if ([PrefsManager]::UseAlternatePrecision) {
 			$Parameters = @{
+				Path  = $defaultPrecision
+				Force = $true
+			}
+			Remove-Item @Parameters
+
+			$Parameters = @{
 				Path    = $alternatePrecision
-				NewName = 'precision.cur'
+				NewName = $defaultPrecision | Split-Path -Leaf
 				Force   = $true
 			}
 			Rename-Item @Parameters
