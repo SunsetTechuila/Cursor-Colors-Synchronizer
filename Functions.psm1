@@ -407,6 +407,15 @@ function Copy-Cursors {
 		$originalCursorsFolder = [PathsProvider]::GetDynamicPaths().OriginalCursorsFolder
 	}
 	process {
+		if (-not (Test-Folder -Path $editedCursorsFolder)) {
+			$Parameters = @{
+				Path      = $editedCursorsFolder
+				ItemType  = 'Directory'
+				Force     = $true
+			}
+			New-Item @Parameters | Out-Null
+		}
+
 		$Parameters = @{
 			Path        = "$originalCursorsFolder\*"
 			Destination = $editedCursorsFolder
