@@ -77,8 +77,8 @@ if ($installListener) {
 	$Parameters = @{
 		TaskName    = 'CCS Listener'
 		Description = $Localization.ListenerTaskDescription
-		Action      = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-ExecutionPolicy Bypass -NoExit -WindowStyle Hidden -File `"$($PathsProvider::Listener)`""
-		Trigger     = New-ScheduledTaskTrigger -AtLogOn -User (whoami)
+		Action      = New-ScheduledTaskAction -Execute $PathsProvider::RunHidden -Argument "powershell -ExecutionPolicy Bypass -NoExit -File `"$($PathsProvider::Listener)`""
+		Trigger     = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
 		Settings    = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -StartWhenAvailable -DontStopIfGoingOnBatteries -ExecutionTimeLimit '00:00:00'
 		RunLevel    = 'Highest'
 		Force       = $true

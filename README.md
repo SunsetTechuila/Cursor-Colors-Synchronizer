@@ -48,6 +48,7 @@ iwr 'https://raw.githubusercontent.com/SunsetTechuila/Cursor-Colors-Synchronizer
 ## Credits
 
 - [Jepri Creations](https://jepricreations.com) for the cursors
+- [stax76](https://github.com/stax76) for [run-hidden](https://github.com/stax76/run-hidden)
 
 ## Legal
 

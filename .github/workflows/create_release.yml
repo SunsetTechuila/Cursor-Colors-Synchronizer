@@ -19,8 +19,7 @@ jobs:
       - name: Create archive
         run: |
           mkdir -p CCS
-          cp -r Resources CCS/
-          cp CCS.ps1 Functions.psm1 Listener.ps1 CCS/
+          cp -r Resources CCS.ps1 Functions.psm1 Listener.ps1 CCS/
           zip -r Cursor-Colors-Synchronizer.zip CCS
 
       - name: Publish release

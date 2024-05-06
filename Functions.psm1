@@ -86,6 +86,8 @@ class PathsProvider {
 	static        [string] $EditedCursorsFolder
 	static Hidden [string] $OriginalCursorsRootFolder
 	static Hidden [string] $DiffsRootFolder
+	static        [string] $BinFolder
+	static        [string] $RunHidden
 
 	PathsProvider([string]$Root) {
 		if (-not (Test-Folder -Path $Root)) {
@@ -100,6 +102,8 @@ class PathsProvider {
 		[PathsProvider]::EditedCursorsFolder = "$([PathsProvider]::CursorsFolder)\Edited"
 		[PathsProvider]::OriginalCursorsRootFolder = "$([PathsProvider]::CursorsFolder)\Original"
 		[PathsProvider]::DiffsRootFolder = "$([PathsProvider]::RecourcesFolder)\Diffs"
+		[PathsProvider]::BinFolder = "$([PathsProvider]::RecourcesFolder)\Bin"
+		[PathsProvider]::RunHidden = "$([PathsProvider]::BinFolder)\run-hidden.exe"
 	}
 
 	static [hashtable] GetDynamicPaths() {
