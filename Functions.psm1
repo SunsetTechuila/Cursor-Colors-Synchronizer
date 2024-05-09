@@ -3,12 +3,12 @@
 
 $ErrorActionPreference = 'Stop'
 
-#region Test
+#region Utils
 function Test-File {
 	[CmdletBinding()]
 	[OutputType([bool])]
 	param (
-		[Parameter(Mandatory)]
+		[Parameter(Mandatory, ValueFromPipeline)]
 		[AllowNull()]
 		[AllowEmptyString()]
 		[string]$Path
@@ -22,7 +22,7 @@ function Test-Folder {
 	[CmdletBinding()]
 	[OutputType([bool])]
 	param (
-		[Parameter(Mandatory)]
+		[Parameter(Mandatory, ValueFromPipeline)]
 		[AllowNull()]
 		[AllowEmptyString()]
 		[string]$Path
@@ -31,9 +31,28 @@ function Test-Folder {
 		[bool](Test-Path -Path $Path -PathType 'Container' -ErrorAction 'SilentlyContinue')
 	}
 }
-#endregion Test
 
-#region Dev
+function ConvertFrom-CmdPath {
+	[CmdletBinding()]
+	[OutputType([string])]
+	param (
+		[Parameter(Mandatory, ValueFromPipeline)]
+		[AllowNull()]
+		[AllowEmptyString()]
+		[string]$Path
+	)
+	process {
+		$powershellPath = $Path
+		$variables = [regex]::Matches($Path, '%([^%]+)%') | ForEach-Object -Process { $PSItem.Groups[1].Value }
+
+		foreach ($variable in $variables) {
+			$powershellPath = $powershellPath.Replace("%$variable%", [System.Environment]::GetEnvironmentVariable($variable))
+		}
+
+		$powershellPath
+	}
+}
+
 # Compare two cursors which differ only in colors using Unix cmp tool, save the output to a file, then use this function to get only the addresses of the differing bytes
 function Get-DiffAddresses {
 	[CmdletBinding()]
@@ -62,7 +81,7 @@ function Get-DiffAddresses {
 		Set-Content @Parameters
 	}
 }
-#endregion Dev
+#endregion Utils
 
 #region Paths
 function Initialize-PathsProvider {
@@ -527,7 +546,7 @@ function Set-Cursor {
 		[string]$Name,
 	
 		[Parameter(Mandatory)]
-		[ValidateScript({ Test-File -Path $PSItem })]
+		[ValidateScript({ $PSItem | ConvertFrom-CmdPath | Test-File })]
 		[string]$Path
 	)
 	begin {
