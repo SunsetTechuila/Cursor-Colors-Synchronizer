@@ -367,23 +367,23 @@ function Wait-ForRegistryKeyChange {
 		switch -Exact ($ChangeEvent) {
 			'Name' {
 				$notifyChange = $notifyChangeName
-				break 
+				break
 			}
 			'Attributes' {
 				$notifyChange = $notifyChangeAttributes
-				break 
+				break
 			}
-			'LastSet' { 
-				$notifyChange = $notifyChangeLastSet 
-				break 
+			'LastSet' {
+				$notifyChange = $notifyChangeLastSet
+				break
 			}
-			'Security' { 
-				$notifyChange = $notifyChangeSecurity 
-				break 
+			'Security' {
+				$notifyChange = $notifyChangeSecurity
+				break
 			}
-			'All' { 
+			'All' {
 				$notifyChange = $notifyChangeName -bor $notifyChangeAttributes -bor $notifyChangeLastSet -bor $notifyChangeSecurity
-				break 
+				break
 			}
 			Default {
 				throw 'Unsuported change event!'
@@ -413,9 +413,9 @@ function Copy-Cursors {
 	process {
 		if (-not (Test-Folder -Path $editedCursorsFolder)) {
 			$Parameters = @{
-				Path      = $editedCursorsFolder
-				ItemType  = 'Directory'
-				Force     = $true
+				Path     = $editedCursorsFolder
+				ItemType = 'Directory'
+				Force    = $true
 			}
 			New-Item @Parameters | Out-Null
 		}
@@ -594,7 +594,7 @@ function Reset-Cursor {
 		$defaultCursors = @(
 			@{
 				Name = 'AppStarting'
-				Path = '%SystemRoot%\cursors\aero_working.ani' 
+				Path = '%SystemRoot%\cursors\aero_working.ani'
 			},
 			@{
 				Name = 'Arrow'
@@ -602,59 +602,59 @@ function Reset-Cursor {
 			},
 			@{
 				Name = 'Crosshair'
-				Path = '%SystemRoot%\cursors\aero_unavail.cur' 
+				Path = '%SystemRoot%\cursors\aero_unavail.cur'
 			},
 			@{
 				Name = 'Hand'
-				Path = '%SystemRoot%\cursors\aero_link.cur' 
+				Path = '%SystemRoot%\cursors\aero_link.cur'
 			},
 			@{
 				Name = 'Help'
-				Path = '%SystemRoot%\cursors\aero_helpsel.cur' 
+				Path = '%SystemRoot%\cursors\aero_helpsel.cur'
 			},
 			@{
 				Name = 'No'
-				Path = '%SystemRoot%\cursors\aero_unavail.cur' 
+				Path = '%SystemRoot%\cursors\aero_unavail.cur'
 			},
 			@{
 				Name = 'NWPen'
-				Path = '%SystemRoot%\cursors\aero_pen.cur' 
+				Path = '%SystemRoot%\cursors\aero_pen.cur'
 			},
 			@{
 				Name = 'Person'
-				Path = '%SystemRoot%\cursors\aero_person.cur' 
+				Path = '%SystemRoot%\cursors\aero_person.cur'
 			},
 			@{
 				Name = 'Pin'
-				Path = '%SystemRoot%\cursors\aero_pin.cur' 
+				Path = '%SystemRoot%\cursors\aero_pin.cur'
 			},
 			@{
 				Name = 'SizeAll'
-				Path = '%SystemRoot%\cursors\aero_move.cur' 
+				Path = '%SystemRoot%\cursors\aero_move.cur'
 			},
 			@{
 				Name = 'SizeNESW'
-				Path = '%SystemRoot%\cursors\aero_nesw.cur' 
+				Path = '%SystemRoot%\cursors\aero_nesw.cur'
 			},
 			@{
 				Name = 'SizeNS'
-				Path = '%SystemRoot%\cursors\aero_ns.cur' 
+				Path = '%SystemRoot%\cursors\aero_ns.cur'
 			},
 			@{
 				Name = 'SizeNWSE'
-				Path = '%SystemRoot%\cursors\aero_nwse.cur' 
+				Path = '%SystemRoot%\cursors\aero_nwse.cur'
 			},
 			@{
 				Name = 'SizeWE'
-				Path = '%SystemRoot%\cursors\aero_ew.cur' 
+				Path = '%SystemRoot%\cursors\aero_ew.cur'
 			},
 			@{
 				Name = 'UpArrow'
-				Path = '%SystemRoot%\cursors\aero_up.cur' 
+				Path = '%SystemRoot%\cursors\aero_up.cur'
 			},
 			@{
 				Name = 'Wait'
-				Path = '%SystemRoot%\cursors\aero_busy.ani' 
+				Path = '%SystemRoot%\cursors\aero_busy.ani'
 			}
 		)
 	}

@@ -5,7 +5,7 @@
 $ErrorActionPreference = 'Stop'
 
 $root = $PSScriptRoot
-$functionsModule = "$root\Functions.psm1" 
+$functionsModule = "$root\Functions.psm1"
 
 Remove-Job -Name 'CursorThemeSync' -Force -ErrorAction 'SilentlyContinue'
 Remove-Job -Name 'CursorColorSync' -Force -ErrorAction 'SilentlyContinue'
