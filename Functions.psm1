@@ -42,14 +42,14 @@ function ConvertFrom-CmdPath {
 		[string]$Path
 	)
 	process {
-		$powershellPath = $Path
+		$absolutePath = $Path
 		$variables = [regex]::Matches($Path, '%([^%]+)%') | ForEach-Object -Process { $PSItem.Groups[1].Value }
 
 		foreach ($variable in $variables) {
-			$powershellPath = $powershellPath.Replace("%$variable%", [System.Environment]::GetEnvironmentVariable($variable))
+			$absolutePath = $absolutePath.Replace("%$variable%", [System.Environment]::GetEnvironmentVariable($variable))
 		}
 
-		$powershellPath
+		$absolutePath
 	}
 }
 
