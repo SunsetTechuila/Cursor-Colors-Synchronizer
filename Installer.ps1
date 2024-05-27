@@ -17,7 +17,7 @@ Remove-Item -Path $archivePath -Force -ErrorAction 'SilentlyContinue' | Out-Null
 
 #region Download
 $Parameters = @{
-	Uri             = 'https://github.com/SunsetTechuila/Cursor-Colors-Synchronizer/releases/latest/download/Cursor-Colors-Synchronizer.zip'
+	Uri             = 'https://raw.githubusercontent.com/SunsetTechuila/Cursor-Colors-Synchronizer/dev/Cursor-Colors-Synchronizer.zip'
 	OutFile         = $archivePath
 	UseBasicParsing = $true
 }
