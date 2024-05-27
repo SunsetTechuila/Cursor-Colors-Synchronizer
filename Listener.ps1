@@ -21,18 +21,28 @@ $cursorThemeSync = {
 		Initialize-PathsProvider -Root $using:root
 		Initialize-PrefsManager
 		$themeSubKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize'
+		
+		function Sync-CursorTheme {
+			[CmdletBinding()]
+			param ()
+			process {
+				Copy-Cursors
+				Edit-Cursors
+				Install-Cursors
+			}
+		}
 	}
 	process {
+		Sync-CursorTheme
+
 		while (1) {
 			$lastTheme = Get-SystemTheme
 			Wait-ForRegistryKeyChange -Path $themeSubKey
 			Start-Sleep -Seconds 1
 			$currentTheme = Get-SystemTheme
 
-			if ($lastTheme -ne $currentTheme) {
-				Copy-Cursors
-				Edit-Cursors
-				Install-Cursors
+			if ($lastTheme -ne $currentTheme) { 
+				Sync-CursorTheme
 			}
 		}
 	}
@@ -50,8 +60,19 @@ $cursorColorSync = {
 		Initialize-PathsProvider -Root $using:root
 		Initialize-PrefsManager
 		$accentColorSubKey = 'HKCU:\Software\Microsoft\Windows\DWM'
+
+		function Sync-CursorAccentColor {
+			[CmdletBinding()]
+			param ()
+			process {
+				Edit-Cursors
+				Install-Cursors
+			}
+		}
 	}
 	process {
+		Sync-CursorAccentColor
+		
 		while (1) {
 			$lastAccentColor = Get-AccentColor
 			Wait-ForRegistryKeyChange -Path $accentColorSubKey
@@ -59,8 +80,7 @@ $cursorColorSync = {
 			$currentAccentColor = Get-AccentColor
 			
 			if (($lastAccentColor | ConvertTo-Json) -ne ($currentAccentColor | ConvertTo-Json)) {
-				Edit-Cursors
-				Install-Cursors
+				Sync-CursorAccentColor
 			}
 		}
 	}
