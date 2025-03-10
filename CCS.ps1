@@ -23,6 +23,17 @@ Import-LocalizedData @Parameters
 Clear-Host
 
 $Parameters = @{
+	Message  = $Localization.ChooseThemeDialogTitle
+	Variants = [ordered]@{
+		'system' = $Localization.System
+		'dark'   = $Localization.Dark
+		'light'  = $Localization.Light
+	}
+	Default  = 'system'
+}
+$PrefsManager::CursorTheme = Read-Choice @Parameters
+
+$Parameters = @{
 	Message  = $Localization.TailVersionDialogTitle
 	Variants = [ordered]@{
 		$true  = $Localization.Yes

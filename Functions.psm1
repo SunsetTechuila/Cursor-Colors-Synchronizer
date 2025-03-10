@@ -128,14 +128,14 @@ class PathsProvider {
 	static [hashtable] GetDynamicPaths() {
 		$useTailVersion = [PrefsManager]::UseTailVersion
 		$cursorSize = [PrefsManager]::CursorSize
-		$systemTheme = Get-SystemTheme
+		$cursorTheme = Get-CursorTheme
 
 		return @{
 			OriginalCursorsFolder = if ($useTailVersion) {
-				"$([PathsProvider]::OriginalCursorsRootFolder)\$systemTheme\tail"
+				"$([PathsProvider]::OriginalCursorsRootFolder)\$cursorTheme\tail"
 			}
 			else {
-				"$([PathsProvider]::OriginalCursorsRootFolder)\$systemTheme\default\$cursorSize"
+				"$([PathsProvider]::OriginalCursorsRootFolder)\$cursorTheme\default\$cursorSize"
 			}
 
 			DiffsFolder           = if ($useTailVersion) {
@@ -163,6 +163,7 @@ class PrefsManager {
 	static [bool]   $UseTailVersion = $false
 	static [string] $CursorSize = 'small'
 	static [bool]   $UseAlternatePrecision = $false
+	static [string] $CursorTheme = 'system'
 
 	static PrefsManager() {
 		$prefs = [PrefsManager]::Read()
@@ -420,6 +421,20 @@ function Wait-ForRegistryKeyChange {
 #endregion System
 
 #region Cursors
+function Get-CursorTheme {
+	[CmdletBinding()]
+	[OutputType([string])]
+	param ()
+	process {
+		if ([PrefsManager]::CursorTheme -eq 'system') {
+			Get-SystemTheme
+		}
+		else {
+			[PrefsManager]::CursorTheme
+		}
+	}
+}
+
 function Copy-Cursors {
 	[CmdletBinding()]
 	param ()
@@ -521,13 +536,13 @@ function Edit-Cursors {
 		$diffsFolder = [PathsProvider]::GetDynamicPaths().DiffsFolder
 		$cursorsFolder = [PathsProvider]::EditedCursorsFolder
 
-		$systemTheme = Get-SystemTheme
+		$cursorTheme = Get-CursorTheme
 		$cursorSize = [PrefsManager]::CursorSize
 		$useTailVersion = [PrefsManager]::UseTailVersion
 	}
 	process {
 		$busyCursor = "$cursorsFolder\busy.ani"
-		$shouldUseAlternateBusyDiff = (-not($useTailVersion) -and $cursorSize -eq 'big') -and ($systemTheme -eq 'light')
+		$shouldUseAlternateBusyDiff = (-not($useTailVersion) -and $cursorSize -eq 'big') -and ($cursorTheme -eq 'light')
 		$busyCursorDiff = if ($shouldUseAlternateBusyDiff) { "$diffsFolder\busy_alt" } else { "$diffsFolder\busy" }
 
 		$workingCursor = "$cursorsFolder\working.ani"

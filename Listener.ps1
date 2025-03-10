@@ -7,6 +7,10 @@ $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
 $functionsModule = "$root\Functions.psm1"
 
+Import-Module -Name $functionsModule -Force
+Initialize-PathsProvider
+$PrefsManager = Initialize-PrefsManager
+
 Remove-Job -Name 'CursorThemeSync' -Force -ErrorAction 'SilentlyContinue'
 Remove-Job -Name 'CursorColorSync' -Force -ErrorAction 'SilentlyContinue'
 #endregion Preparation
@@ -47,7 +51,9 @@ $cursorThemeSync = {
 		}
 	}
 }
-Start-Job -ScriptBlock $cursorThemeSync -Name 'CursorThemeSync'
+if ($PrefsManager::CursorTheme -eq 'system') {
+	Start-Job -ScriptBlock $cursorThemeSync -Name 'CursorThemeSync'
+}
 #endregion Theme
 
 #region Accent Color
@@ -87,3 +93,5 @@ $cursorColorSync = {
 }
 Start-Job -ScriptBlock $cursorColorSync -Name 'CursorColorSync'
 #endregion Accent Color
+
+Remove-Module -Name 'Functions'
