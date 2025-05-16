@@ -1,2 +1,9 @@
-Resources/Cursors/Edited
-prefs.ini
+src/Resources/Cursors/Edited
+src/prefs.ini
+*.sln
+*.filters
+*.vcxproj
+bin/
+bin-int/
+obj/
+.vs/

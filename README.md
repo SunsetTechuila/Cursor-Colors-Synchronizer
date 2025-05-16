@@ -1,57 +1,27 @@
 # Cursor Colors Synchronizer
 
-![CCS Banner](https://user-images.githubusercontent.com/115353812/218801534-51e90ae7-9867-488e-afc0-3002867662cb.png)
+## How to build and run
 
-## Description
+1. Install Visual Studio with C++ development tools.
 
-A PowerShell tool that synchronizes your cursor accent color and theme with Windows. Uses paid versions of packs:
+2. Install Premake5:
 
-- [Windows 11 Cursors Concept v2](https://www.deviantart.com/jepricreations/art/Windows-11-Cursors-Concept-v2-886489356)
-- [Windows 11 Tail Cursor Concept](https://www.deviantart.com/jepricreations/art/W11-Free-Tail-Cursor-Concept-by-Jepri-Creations-962242647)
+   ```cmd
+   winget install --id=Premake.Premake.5.Beta 
+   ```
 
-#### Best match with
+3. Generate the project files using Premake:
 
-- [Windows Auto Night Mode](https://github.com/AutoDarkMode/Windows-Auto-Night-Mode)
-- [Light Switch](https://github.com/joakimmag/Light-Switch)
-- Automatic accent color with:
-  - [WinDynamicDesktop](https://github.com/t1m0thyj/WinDynamicDesktop)
-  - [Bing Wallpaper](https://www.microsoft.com/en-us/bing/bing-wallpaper)
-  - Windows spotlight
-  - A slideshow
+   ```cmd
+   premake5 vs2022
+   ```
 
-## How to
+   This will create a Visual Studio 2022 solution.
 
-- ### Install
+4. Open the generated solution file in Visual Studio.
 
-Run PowerShell as Administrator, paste this command and press Enter
+5. Build the solution in Release or Debug mode.
 
-```powershell
-iwr 'https://raw.githubusercontent.com/SunsetTechuila/Cursor-Colors-Synchronizer/master/Installer.ps1' -useb | iex
-```
-
-- ### Use
-
-Just read the installer prompts and choose what you want.
-
-- ### Uninstall
-
-Run PowerShell as Administrator, paste this command and press Enter
-
-```powershell
-iwr 'https://raw.githubusercontent.com/SunsetTechuila/Cursor-Colors-Synchronizer/master/Uninstaller.ps1' -useb | iex
-```
-
-## Requirements
-
-- PowerShell 5.1 or higher
-
-## Credits
-
-- [Jepri Creations](https://jepricreations.com) for the cursors
-- [stax76](https://github.com/stax76) for [run-hidden](https://github.com/stax76/run-hidden)
-
-## Legal
-
-I don't have a license or permission from the author to use these packs in this way. You can buy them on ko-fi ([Non-Tail](https://ko-fi.com/s/d9f85e6821), [Tail](https://ko-fi.com/s/d07dcb11da)) for your personal use.
-
-You can use my code for any purposes.
+6. Run the application:
+   - From the IDE: Select the Cursor-Colors-Synchronizer project and run
+   - From the command line: Navigate to the bin directory and run `Cursor-Colors-Synchronizer.exe`

@@ -1,5 +1,5 @@
 {
-  "recommendations": [
-    "ms-vscode.powershell"
-  ]
+    "recommendations": [
+        "ms-vscode.cpptools-extension-pack"
+    ]
 }
