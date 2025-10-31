@@ -15,7 +15,6 @@ A PowerShell tool that synchronizes your cursor accent color and theme with Wind
 - [Light Switch](https://github.com/joakimmag/Light-Switch)
 - Automatic accent color with:
   - [WinDynamicDesktop](https://github.com/t1m0thyj/WinDynamicDesktop)
-  - [Bing Wallpaper](https://www.microsoft.com/en-us/bing/bing-wallpaper)
   - Windows spotlight
   - A slideshow
 
